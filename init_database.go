@@ -9,14 +9,11 @@ package main
 
 import (
     "fmt"
-	"database/sql"
+    "database/sql"
     _ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	fmt.Println("Hello and welcome to the Beer Review Database!!")
-	fmt.Println("Please enter your username: ")
-
     db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
     
     // if there is an error opening the connection, handle it
@@ -27,4 +24,14 @@ func main() {
     // defer the close till after the main function has finished
     // executing 
 	defer db.Close()
+	
+	// perform a db.Query create 
+    create, err := db.Query("CREATE TABLE test_table(test_attribute INT)")
+    
+    // if there is an error inserting, handle it
+    if err != nil {
+        panic(err.Error())
+    }
+    // be careful deferring Queries if you are using transactions
+    defer create.Close()
 }
