@@ -1,14 +1,15 @@
-/* File Name: beer.go
+/* File Name: init_database.go
  * Authors: Will Fraisl and Max McKee
- * Description:
- * Usage: go build beer.go
- * ./beer
+ * Description: clears beer_database and fills it with example values
+ * Usage: go build init_database.go
+ * 		  ./init_database
  */
 
 package main
 
 import (
-    "fmt"
+	"io/ioutil"
+	"strings"
     "database/sql"
     _ "github.com/go-sql-driver/mysql"
 )
@@ -22,16 +23,21 @@ func main() {
     }
     
     // defer the close till after the main function has finished
-    // executing 
 	defer db.Close()
-	
-	// perform a db.Query create 
-    create, err := db.Query("CREATE TABLE test_table(test_attribute INT)")
-    
-    // if there is an error inserting, handle it
-    if err != nil {
-        panic(err.Error())
-    }
-    // be careful deferring Queries if you are using transactions
-    defer create.Close()
+
+	file, err := ioutil.ReadFile("init_database.sql")
+
+	// error handling for reading sql file
+	if err != nil {
+		panic(err.Error())
+	}
+
+	requests := strings.Split(string(file), ";\n")
+
+	for _, request := range requests {
+		_, err := db.Exec(request)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
 }
