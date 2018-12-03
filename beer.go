@@ -48,19 +48,18 @@ func main() {
 	fmt.Println("Username: " + username)
 	fmt.Println("Password: " + password)
 
-    db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
-    
-    // if there is an error opening the connection, handle it
+    db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")    
     if err != nil {
         panic(err.Error())
-	}
-	
-    // defer the close till after the main function has finished
+	}	
 	defer db.Close()
 
 	top_beer(db, "daily")
 	fmt.Println()
 	find_beer(db, "Falls Porter")
+	fmt.Println()
+	rate_beer(db)
+	fmt.Println()
 }
 
 // given the database and time frame, return the top beers
@@ -109,7 +108,25 @@ func find_beer(db *sql.DB, beer_name string) {
 
 // Prompts user for rating details and stores their rating. (max 1 rating per beer per day)
 func rate_beer(db *sql.DB) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Brewery: ")
+	brewery, _ := reader.ReadString('\n')
+	brewery = strings.TrimSuffix(brewery, "\n")
+	fmt.Print("Beer Name: ")
+	beer_name, _ := reader.ReadString('\n')
+	beer_name = strings.TrimSuffix(beer_name, "\n")
+	fmt.Print("Stars (1-5): ")
+	stars, _ := reader.ReadString('\n')
+	stars = strings.TrimSuffix(stars, "\n")
+	fmt.Print("Description (120 characters): ")
+	desc, _ := reader.ReadString('\n')
+	desc = strings.TrimSuffix(desc, "\n")
 
+	request := "INSERT INTO rating (beer,brewery,stars,description, date) VALUES ('"+beer_name+"','"+brewery+"',"+stars+",'"+desc+"',NOW())"
+	_, err := db.Exec(request)
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 // Prompts user for details of new beer they want to add
