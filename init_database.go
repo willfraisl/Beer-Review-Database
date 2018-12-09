@@ -8,21 +8,22 @@
 package main
 
 import (
+	"database/sql"
 	"io/ioutil"
 	"strings"
-    "database/sql"
-    _ "github.com/go-sql-driver/mysql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-    db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
-    
-    // if there is an error opening the connection, handle it
-    if err != nil {
-        panic(err.Error())
-    }
-    
-    // defer the close till after the main function has finished
+	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
+
+	// if there is an error opening the connection, handle it
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// defer the close till after the main function has finished
 	defer db.Close()
 
 	file, err := ioutil.ReadFile("init_database.sql")
