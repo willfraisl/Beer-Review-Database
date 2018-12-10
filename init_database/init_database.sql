@@ -4,23 +4,22 @@ DROP TABLE IF EXISTS beer;
 DROP TABLE IF EXISTS brewery;
 DROP TABLE IF EXISTS vendor;
 
-
 CREATE TABLE brewery(
     name VARCHAR(50),
-    password VARCHAR(50),
+    password CHAR(64),
     location VARCHAR(50),
     PRIMARY KEY (name)
 );
 
 CREATE TABLE rater(
-    username VARCHAR(50),
-    password VARCHAR(50),
-    PRIMARY KEY (username)
+    name VARCHAR(50),
+    password CHAR(64),
+    PRIMARY KEY (name)
 );
 
 CREATE TABLE vendor(
     name VARCHAR(50),
-    password VARCHAR(50),
+    password CHAR(64),
     location VARCHAR(50),
     PRIMARY KEY (name)
 );
@@ -47,7 +46,7 @@ CREATE TABLE rating(
 );
 
 INSERT INTO brewery VALUES
-("No-Li", "password", "Spokane, WA");
+("No-Li", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Spokane, WA");
 
 INSERT INTO beer VALUES
 ("Amber", "No-Li", 0.05, 10),

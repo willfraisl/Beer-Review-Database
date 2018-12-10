@@ -25,25 +25,39 @@ func main() {
 	fmt.Println("Hello and Welcome to the Beer Review Database!!")
 	fmt.Println("-----------------------------------------------")
 
-	fmt.Print("Are you a (1)brewer, (2)vendor, or (3)rater: ")
-	userStr, _ := reader.ReadString('\n')
-	userStr = strings.TrimSuffix(userStr, "\n")
-	sel, err := strconv.Atoi(userStr)
-	if err != nil {
-		panic(err.Error())
+	var sel int
+	for true{
+		fmt.Print("Are you a (1)brewer, (2)vendor, or (3)rater: ")
+		userStr, _ := reader.ReadString('\n')
+		userStr = strings.TrimSuffix(userStr, "\n")
+		sel, _ = strconv.Atoi(userStr)
+		if sel > 0 && sel < 4 {
+			break
+		}
 	}
 
 	// check what type of user
-	user := User{}
-	user.login(sel)
-	userType := user.userType
-
+	
 	// connect to database
 	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
 	if err != nil {
 		panic(err.Error())
 	}
 	defer db.Close()
+
+	user := User{}
+	var isLoggedIn bool
+	for true{
+		if isLoggedIn, err = user.Login(db, sel); isLoggedIn {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Invalid username or password")
+	}
+
+	fmt.Printf("Welcome, %s!\n", user.name)
 
 	// loop to accept user commands
 	for true {
@@ -61,26 +75,26 @@ func main() {
 		case "find":
 			// TODO: accept with argument
 		case "rate":
-			if userType == rater {
+			if user.userType == rater {
 				rateBeer(db)
 			} else {
 				fmt.Println("Only rater has access to that command")
 			}
 		case "add":
-			if userType == brewer{
+			if user.userType == brewer{
 				// TODO: have brewery name here aka username
 				addBeer(db, "breweryName")
 			} else {
 				fmt.Println("Only brewery has access to that command")
 			}
 		case "stock":
-			if userType == vendor {
+			if user.userType == vendor {
 				stockBeer(db)
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}
 		case "remove":
-			if userType == vendor {
+			if user.userType == vendor {
 				removeBeer(db)
 			} else {
 				fmt.Println("Only vendor has access to that command")

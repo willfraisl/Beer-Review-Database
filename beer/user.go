@@ -8,45 +8,87 @@ package main
 
 import (
 	"bufio"
-	"os"
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
+	"database/sql"
+	"crypto/sha256"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // User type enumeration
-type UserType int
+type UserType string
 const(
-	brewer UserType = 1
-	vendor UserType = 2
-	rater  UserType = 3
+	brewer UserType = "brewery"
+	vendor UserType = "vendor"
+	rater  UserType = "rater"
 )
 
-// Generali
+// Generalized user struct for breweries, raters, and vendors
 type User struct{
 	userType UserType
 	name string
 }
 
-func (u *User) login(userType int) (bool, error){
+// Accepts a database connection and a user type where 
+// 1 -> brewery, 2 -> vendor, 3 -> rater
+// Returns a boolean indicating success and any errors
+func (u *User) Login(db *sql.DB, userType int) (bool, error){
+	// Prompt for username
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter username: ")
-	username, _ := reader.ReadString('\n')
-	fmt.Print("Enter password: ")
-	password, _ := reader.ReadString('\n')
+	username, err := reader.ReadString('\n')
+	if err != nil {
+		return false, err
+	}
+	username = strings.TrimSpace(username)
 
+	// Prompt for password, don't echo to terminal
+	fmt.Print("Enter password: ")
+	password, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return false, err
+	}
+	fmt.Println()
+	
+	// Determine and set user type
 	switch userType {
 	case 1:
-		// TODO: check username and pass
 		u.userType = brewer
 	case 2:
-		// TODO: check username and pass
 		u.userType = vendor
 	case 3:
-		// TODO: check username and pass
 		u.userType = rater
 	default:
 	}
+
+	// Hash password
+	h := sha256.New()
+	h.Write([]byte(password))
+
+	// Run query to fetch password hash from database for given users
+	qString := ("SELECT password FROM " + string(u.userType) + 
+				" WHERE name = '" + username + "';")
+	rows, err := db.Query(qString)
+	if err != nil{
+		return false, err
+	}
+	defer rows.Close()
 	
-	fmt.Println("Username is " + username)
-	fmt.Println("Password is " + password)
+	// Check if a response is sent for the user with the given type
+	if rows.Next() {
+		var pHash string
+		// Fetch data from the first row found
+		if err = rows.Scan(&pHash); err != nil{
+			return false, err
+		} else if pHash == fmt.Sprintf("%x", h.Sum(nil)) { // Sucessful login
+			u.name = username
+			return true, nil
+		} else { // Failed login
+			return false, err
+		}
+	}
+	
 	return false, nil
 }
