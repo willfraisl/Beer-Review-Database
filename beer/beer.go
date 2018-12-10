@@ -20,7 +20,6 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	userType := "none"
 
 	fmt.Println("-----------------------------------------------")
 	fmt.Println("Hello and Welcome to the Beer Review Database!!")
@@ -29,22 +28,15 @@ func main() {
 	fmt.Print("Are you a (1)brewer, (2)vendor, or (3)rater: ")
 	userStr, _ := reader.ReadString('\n')
 	userStr = strings.TrimSuffix(userStr, "\n")
-	user, err := strconv.Atoi(userStr)
+	sel, err := strconv.Atoi(userStr)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	// check what type of user
-	switch user {
-	case 1:
-		userType = "brewer"
-		login(userType)
-	case 2:
-		userType = "vendor"
-		login(userType)
-	case 3:
-		userType = "rater"
-		login(userType)
-	default:
-		fmt.Println("wrong input")
-	}
+	user := User{}
+	user.login(sel)
+	userType := user.userType
 
 	// connect to database
 	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
@@ -69,26 +61,26 @@ func main() {
 		case "find":
 			// TODO: accept with argument
 		case "rate":
-			if userType == "rater" {
+			if userType == rater {
 				rateBeer(db)
 			} else {
 				fmt.Println("Only rater has access to that command")
 			}
 		case "add":
-			if userType == "brewer" {
+			if userType == brewer{
 				// TODO: have brewery name here aka username
 				addBeer(db, "breweryName")
 			} else {
 				fmt.Println("Only brewery has access to that command")
 			}
 		case "stock":
-			if userType == "vendor" {
+			if userType == vendor {
 				stockBeer(db)
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}
 		case "remove":
-			if userType == "vendor" {
+			if userType == vendor {
 				removeBeer(db)
 			} else {
 				fmt.Println("Only vendor has access to that command")
@@ -97,50 +89,6 @@ func main() {
 			fmt.Println("Not a valid command")
 			// TODO: print a list of commands
 		}
-	}
-}
-
-// given the user type, attempt to login, return if successful
-func login(userType string) bool {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter username: ")
-	username, _ := reader.ReadString('\n')
-	fmt.Print("Enter password: ")
-	password, _ := reader.ReadString('\n')
-
-	switch userType {
-	case "brewer":
-		// TODO: check username and pass
-	case "vendor":
-		// TODO: check username and pass
-	case "rater":
-		// TODO: check username and pass
-	default:
-	}
-	fmt.Println("Username is " + username)
-	fmt.Println("Password is " + password)
-	return false
-}
-
-// given the database and time frame, return the top beers
-func topBeer(db *sql.DB, timeFrame string) {
-	request := "SELECT * FROM beer"
-	rows, err := db.Query(request)
-	if err != nil {
-		panic(err.Error())
-	}
-	defer rows.Close()
-
-	var name string
-	var brewery string
-	var abv float32
-	var ibu int
-	for rows.Next() {
-		err := rows.Scan(&name, &brewery, &abv, &ibu)
-		if err != nil {
-			panic(err.Error())
-		}
-		fmt.Println(name, brewery, abv, ibu)
 	}
 }
 
