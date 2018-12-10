@@ -36,9 +36,9 @@ type User struct{
 // Returns a boolean indicating success and any errors
 func (u *User) Login(db *sql.DB, userType int) (bool, error){
 	// Prompt for username
-	reader := bufio.NewReader(os.Stdin)
+	console := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter username: ")
-	username, err := reader.ReadString('\n')
+	username, err := console.ReadString('\n')
 	if err != nil {
 		return false, err
 	}
@@ -87,6 +87,51 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 			return true, nil
 		} else { // Failed login
 			return false, err
+		}
+	} else { // No user exists
+		// Loop for valid input
+		for true{
+			// Prompt user if they want to create the user
+			fmt.Printf("The %s does not exist yet.\n", string(u.userType))
+			fmt.Print("Create a new account with the given password? (y/n): ")
+			response, err := console.ReadString('\n')
+			if err != nil {
+				return false, err
+			}
+			response = strings.TrimSpace(response)
+
+			if response == "n" {
+				fmt.Println("Okay, reprompting for credentials...")
+				return false, nil
+			} else if response == "y" {
+				break
+			} 
+		}
+		
+		// Construct update statement
+		u.name = username
+		updateString := ("INSERT INTO " + string(u.userType) + " VALUES ('" + 
+						 u.name + "', '" + fmt.Sprintf("%x", h.Sum(nil)) + "'")
+
+		// New brewer and vendor requires location
+		if u.userType == brewer || u.userType == vendor {
+			fmt.Print("Please enter your location of business: ")
+			location, err := console.ReadString('\n')
+			if err != nil {
+				return false, err
+			}
+			location = strings.TrimSpace(location)
+			updateString += ",'" + location + "'"
+		}
+
+		updateString += ");"
+
+		// Add user to the database
+		_, err := db.Exec(updateString)
+		if err != nil {
+			return false, err
+		} else {
+			return true, nil
 		}
 	}
 	
