@@ -1,58 +1,107 @@
 DROP TABLE IF EXISTS rating;
 DROP TABLE IF EXISTS rater;
+DROP TABLE IF EXISTS inventory;
 DROP TABLE IF EXISTS beer;
 DROP TABLE IF EXISTS brewery;
 DROP TABLE IF EXISTS vendor;
 
 CREATE TABLE brewery(
-    name VARCHAR(50),
-    password CHAR(64),
-    location VARCHAR(50),
+    name        VARCHAR(50),
+    password    CHAR(64),
+    location    VARCHAR(50),
     PRIMARY KEY (name)
 );
 
 CREATE TABLE rater(
-    name VARCHAR(50),
-    password CHAR(64),
+    name        VARCHAR(50),
+    password    CHAR(64),
     PRIMARY KEY (name)
 );
 
 CREATE TABLE vendor(
-    name VARCHAR(50),
-    password CHAR(64),
-    location VARCHAR(50),
-    PRIMARY KEY (name)
+    vid         INT AUTO_INCREMENT,
+    name        VARCHAR(50),
+    password    CHAR(64),
+    location    VARCHAR(50),
+    PRIMARY KEY (vid)
 );
 
 CREATE TABLE beer(
-    name VARCHAR(50),
-    brewery VARCHAR(50),
-    abv DECIMAL(4,3),
-    ibu INT,
-    PRIMARY KEY (name),
+    name        VARCHAR(50),
+    brewery     VARCHAR(50),
+    abv         DECIMAL(2,1),
+    ibu         INT,
+    PRIMARY KEY (name, brewery),
     FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE
 );
 
 CREATE TABLE rating(
-    id INT AUTO_INCREMENT,
-    beer VARCHAR(50),
-    brewery VARCHAR(50),
-    stars INT,
+    rid         INT AUTO_INCREMENT,
+    beer        VARCHAR(50),
+    brewery     VARCHAR(50),
+    stars       INT,
     description VARCHAR(120),
-    date DATE,
-    PRIMARY KEY (id),
+    date        DATE,
+    PRIMARY KEY (rid),
     FOREIGN KEY (beer) REFERENCES beer(name) ON DELETE CASCADE,
     FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE
 );
 
+CREATE TABLE inventory(
+    vid         INT,
+    beer        VARCHAR(50),
+    brewery     VARCHAR(50),
+    qualtity    INT,
+    PRIMARY KEY (vid, beer),
+    FOREIGN KEY (beer) REFERENCES beer(name) ON DELETE CASCADE,
+    FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE,
+    FOREIGN KEY (vid) REFERENCES vendor(vid) ON DELETE CASCADE
+);
+
 INSERT INTO brewery VALUES
-("No-Li", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Spokane, WA");
+-- Password = password
+-- Password = Spacedust
+("No-Li", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Spokane, WA"),
+("Elysian", "e46a0cb9f37b861b63ac1b1192d683341abaabb58494b61ff34fd248ca45b695", "Seattle, WA");
 
 INSERT INTO beer VALUES
-("Amber", "No-Li", 0.05, 10),
-("Red, White & No-Li Pale Ale", "No-Li", 0.061, 35),
-("Born & Raised", "No-Li", 0.07, 85),
-("Big Juicy", "No-Li", 0.061, 55),
-("Wrecking Ball", "No-Li", 0.095, 100),
-("Corner Coast", "No-Li", 0.048, 20),
-("Falls Porter", "No-Li", 0.061, 39);
+("Amber", "No-Li", 5.0, 10),
+("Red, White & No-Li Pale Ale", "No-Li", 6.1, 35),
+("Born & Raised", "No-Li", 7.0, 85),
+("Big Juicy", "No-Li", 6.1, 55),
+("Wrecking Ball", "No-Li", 9.5, 100),
+("Corner Coast", "No-Li", 4.8, 20),
+("Falls Porter", "No-Li", 6.1, 39),
+("Amber", "Elysian", 5.5, 15),
+("Space Dust IPA", "Elysian", 8.2, 73),
+("Dayglow IPA", "Elysian", 7.4, 65),
+("Immortal", "Elysian", 6.3, 62),
+("Dragonstooth Stout", "Elysian", 8.1, 56),
+("Mens Room Red", "Elysian", 5.6, 51),
+("Avatar", "Elysian", 6.3, 43);
+
+INSERT INTO vendor (name, password, location) VALUES
+("Winco", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Spokane, WA"),
+("Yokes", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Spokane, WA"),
+("Haagens", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Seattle, WA"),
+("Costco", "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8", "Seattle, WA");
+
+INSERT INTO inventory VALUES
+(1, "Amber", "No-Li", 34),
+(2, "Amber", "No-Li", 21),
+(1, "Red, White & No-Li Pale Ale", "No-Li", 17),
+(3, "Red, White & No-Li Pale Ale", "No-Li", 13),
+(1, "Born & Raised", "No-Li", 18),
+(2, "Born & Raised", "No-Li", 7),
+(3, "Born & Raised", "No-Li", 3),
+(2, "Big Juicy", "No-Li", 8),
+(2, "Wrecking Ball", "No-Li", 5),
+(3, "Wrecking Ball", "No-Li", 10),
+(2, "Space Dust IPA", "Elysian", 10),
+(3, "Space Dust IPA", "Elysian", 4),
+(4, "Space Dust IPA", "Elysian", 50),
+(3, "Dayglow IPA", "Elysian", 6),
+(4, "Immortal", "Elysian", 26),
+(3, "Mens Room Red", "Elysian", 18),
+(4, "Mens Room Red", "Elysian", 15),
+(2, "Avatar", "Elysian", 18);

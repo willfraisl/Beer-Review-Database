@@ -64,16 +64,22 @@ func main() {
 		fmt.Print(">")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
+		cmd := strings.SplitN(input, " ", 2)
 
-		switch input {
+		switch cmd[0] {
 		case "exit":
 			os.Exit(0)
 		case "daily":
+			topBeer(db, "day")
 		case "weekly":
+			topBeer(db, "week")
 		case "monthly":
+			topBeer(db, "month")
 		case "yearly":
+			topBeer(db, "year")
 		case "find":
 			// TODO: accept with argument
+			findBeer(db, cmd[1])
 		case "rate":
 			if user.userType == rater {
 				rateBeer(db)
@@ -113,7 +119,12 @@ func main() {
 
 // Finds all beers that match a name and their brewery, along with vendors that stock it.
 func findBeer(db *sql.DB, beerName string) {
-	request := "SELECT * FROM beer WHERE name = '" + beerName + "'"
+	var request string
+	if beerName == "*" {
+		request = "SELECT * FROM beer ORDER BY brewery;"
+	} else {
+		request = "SELECT * FROM beer WHERE name = '" + beerName + "';"
+	}
 	rows, err := db.Query(request)
 	if err != nil {
 		panic(err.Error())
@@ -129,6 +140,7 @@ func findBeer(db *sql.DB, beerName string) {
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Println(name, brewery, abv, ibu)
+		fmt.Printf("%s:  %-35s %.1f ABV \t %d IBU\n", brewery, name, abv, ibu)
+		// TODO: Left join with inventory table to see who stocks each beer
 	}
 }

@@ -3,11 +3,12 @@
  * Description: Functions to handle finding the top rated
  *				beers by day, week, month, and year
  */
+
 package main
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 )
 
 // given the database and time frame, return the top beers
