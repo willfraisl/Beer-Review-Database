@@ -15,6 +15,7 @@ CREATE TABLE brewery(
 CREATE TABLE rater(
     name        VARCHAR(50),
     password    CHAR(64),
+    location    VARCHAR(50),
     PRIMARY KEY (name)
 );
 

@@ -31,6 +31,7 @@ const (
 type User struct {
 	userType UserType
 	name     string
+	location string
 }
 
 // Accepts a database connection and a user type where
@@ -112,24 +113,16 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error) {
 
 		// Construct update statement
 		u.name = username
-		updateString := ("INSERT INTO " + string(u.userType) + " VALUES ('" +
-			u.name + "', '" + fmt.Sprintf("%x", h.Sum(nil)) + "'")
-
-		// New brewer and vendor requires location
-		if u.userType == brewer || u.userType == vendor {
-			fmt.Print("Please enter your location of business: ")
-			location, err := console.ReadString('\n')
-			if err != nil {
-				return false, err
-			}
-			location = strings.TrimSpace(location)
-			updateString += ",'" + location + "'"
+		fmt.Print("Please enter your location: ")
+		u.location, err = console.ReadString('\n')
+		if err != nil {
+			return false, err
 		}
-
-		updateString += ");"
+		u.location = strings.TrimSpace(u.location)
 
 		// Add user to the database
-		_, err := db.Exec(updateString)
+		_, err := db.Exec("INSERT INTO "+string(u.userType)+" VALUES (?, ?, ?);",
+			u.name, fmt.Sprintf("%x", h.Sum(nil)), u.location)
 		if err != nil {
 			return false, err
 		}
