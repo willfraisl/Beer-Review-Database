@@ -26,7 +26,7 @@ func main() {
 	fmt.Println("-----------------------------------------------")
 
 	var sel int
-	for true{
+	for true {
 		fmt.Print("Are you a (1)brewer, (2)vendor, or (3)rater: ")
 		userStr, _ := reader.ReadString('\n')
 		userStr = strings.TrimSuffix(userStr, "\n")
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// check what type of user
-	
+
 	// connect to database
 	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 
 	user := User{}
 	var isLoggedIn bool
-	for true{
+	for true {
 		if isLoggedIn, err = user.Login(db, sel); isLoggedIn {
 			break
 		}
@@ -81,9 +81,14 @@ func main() {
 				fmt.Println("Only rater has access to that command")
 			}
 		case "add":
-			if user.userType == brewer{
-				// TODO: have brewery name here aka username
-				addBeer(db, "breweryName")
+			if user.userType == brewer {
+				addBeer(db, string(user.name))
+			} else {
+				fmt.Println("Only brewery has access to that command")
+			}
+		case "remove":
+			if user.userType == brewer {
+				removeBeer(db, string(user.name))
 			} else {
 				fmt.Println("Only brewery has access to that command")
 			}
@@ -93,9 +98,9 @@ func main() {
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}
-		case "remove":
+		case "unstock":
 			if user.userType == vendor {
-				removeBeer(db)
+				unstockBeer(db)
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}

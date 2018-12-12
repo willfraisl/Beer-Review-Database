@@ -1,6 +1,6 @@
 /* File Name: user.go
  * Authors: Will Fraisl and Max McKee
- * Description: Generalizes logged in users to maintain 
+ * Description: Generalizes logged in users to maintain
  * 				control of what users can and can't do
  */
 
@@ -8,33 +8,35 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha256"
+	"database/sql"
 	"fmt"
 	"os"
 	"strings"
 	"syscall"
-	"database/sql"
-	"crypto/sha256"
+
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 // User type enumeration
 type UserType string
-const(
+
+const (
 	brewer UserType = "brewery"
 	vendor UserType = "vendor"
 	rater  UserType = "rater"
 )
 
 // Generalized user struct for breweries, raters, and vendors
-type User struct{
+type User struct {
 	userType UserType
-	name string
+	name     string
 }
 
-// Accepts a database connection and a user type where 
+// Accepts a database connection and a user type where
 // 1 -> brewery, 2 -> vendor, 3 -> rater
 // Returns a boolean indicating success and any errors
-func (u *User) Login(db *sql.DB, userType int) (bool, error){
+func (u *User) Login(db *sql.DB, userType int) (bool, error) {
 	// Prompt for username
 	console := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter username: ")
@@ -51,7 +53,7 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 		return false, err
 	}
 	fmt.Println()
-	
+
 	// Determine and set user type
 	switch userType {
 	case 1:
@@ -68,19 +70,19 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 	h.Write([]byte(password))
 
 	// Run query to fetch password hash from database for given users
-	qString := ("SELECT password FROM " + string(u.userType) + 
-				" WHERE name = '" + username + "';")
+	qString := ("SELECT password FROM " + string(u.userType) +
+		" WHERE name = '" + username + "';")
 	rows, err := db.Query(qString)
-	if err != nil{
+	if err != nil {
 		return false, err
 	}
 	defer rows.Close()
-	
+
 	// Check if a response is sent for the user with the given type
 	if rows.Next() {
 		var pHash string
 		// Fetch data from the first row found
-		if err = rows.Scan(&pHash); err != nil{
+		if err = rows.Scan(&pHash); err != nil {
 			return false, err
 		} else if pHash == fmt.Sprintf("%x", h.Sum(nil)) { // Sucessful login
 			u.name = username
@@ -90,7 +92,7 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 		}
 	} else { // No user exists
 		// Loop for valid input
-		for true{
+		for true {
 			// Prompt user if they want to create the user
 			fmt.Printf("The %s does not exist yet.\n", string(u.userType))
 			fmt.Print("Create a new account with the given password? (y/n): ")
@@ -105,13 +107,13 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 				return false, nil
 			} else if response == "y" {
 				break
-			} 
+			}
 		}
-		
+
 		// Construct update statement
 		u.name = username
-		updateString := ("INSERT INTO " + string(u.userType) + " VALUES ('" + 
-						 u.name + "', '" + fmt.Sprintf("%x", h.Sum(nil)) + "'")
+		updateString := ("INSERT INTO " + string(u.userType) + " VALUES ('" +
+			u.name + "', '" + fmt.Sprintf("%x", h.Sum(nil)) + "'")
 
 		// New brewer and vendor requires location
 		if u.userType == brewer || u.userType == vendor {
@@ -130,10 +132,9 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error){
 		_, err := db.Exec(updateString)
 		if err != nil {
 			return false, err
-		} else {
-			return true, nil
 		}
+		return true, nil
 	}
-	
+
 	return false, nil
 }
