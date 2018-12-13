@@ -52,7 +52,8 @@ func main() {
 			break
 		}
 		if err != nil {
-			panic(err)
+			fmt.Println("There was an error when trying to log in")
+			continue
 		}
 		fmt.Println("Invalid username or password")
 	}
@@ -127,19 +128,19 @@ func findBeer(db *sql.DB, location string, beerName string) {
 	}
 	rows, err := db.Query(request)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("Internal error finding beers")
 	}
 	defer rows.Close()
 
 	// Gets the stock of local vendors for a specific beer
-	localStock, err := db.Prepare("SELECT v.name, i.quantity " +
+	localStock, err := db.Prepare("SELECT v.name, IFNULL(i.quantity, 0) " +
 		"FROM beer b CROSS JOIN vendor v " +
 		"LEFT JOIN inventory i ON v.vid = i.vid AND b.name = i.beername AND b.brewery = i.brewery " +
 		"WHERE v.location = ? " +
 		"AND b.brewery = ? " +
 		"AND b.name = ?;")
 	if err != nil {
-		panic(err.Error())
+		fmt.Println("There was a problem getting inventory information")
 	}
 	var name string
 	var brewery string
@@ -157,7 +158,8 @@ func findBeer(db *sql.DB, location string, beerName string) {
 		localVendors, err := localStock.Query(location, brewery, name)
 		defer localVendors.Close()
 		if err != nil {
-			panic(err.Error())
+			fmt.Println("    Could not get store information")
+			continue
 		}
 
 		hasVendor := false
@@ -165,7 +167,8 @@ func findBeer(db *sql.DB, location string, beerName string) {
 			hasVendor = true
 			err = localVendors.Scan(&vendorName, &quantity)
 			if err != nil {
-				quantity = 0
+				fmt.Println("    Could not get store information")
+				continue
 			}
 			fmt.Printf("    %-10s %d in stock\n", vendorName, quantity)
 		}
