@@ -52,6 +52,6 @@ func topBeer(db *sql.DB, timeFrame string) {
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Println(brewery, beerName, "| Average Rating:", avgRating)
+		fmt.Printf("%v %v | Average Rating: %.2f\n", brewery, beerName, avgRating)
 	}
 }

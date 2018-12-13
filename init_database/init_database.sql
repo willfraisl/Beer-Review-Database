@@ -106,3 +106,9 @@ INSERT INTO inventory VALUES
 (3, "Mens Room Red", "Elysian", 18),
 (4, "Mens Room Red", "Elysian", 15),
 (2, "Avatar", "Elysian", 18);
+
+INSERT INTO rating (beername, brewery, stars, description, date) VALUES
+("Corner Coast", "No-Li", 5, "My favorite beer ever!!", "2018-12-12"),
+("Amber", "No-Li", 4, "Oh so good", "2018-12-10"),
+("Corner Coast", "No-Li", 5, "mmmmmmm", "2018-12-11"),
+("Corner Coast", "No-Li", 4, "Great beer", "2018-12-09");
