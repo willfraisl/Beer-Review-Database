@@ -71,9 +71,8 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error) {
 	h.Write([]byte(password))
 
 	// Run query to fetch password hash from database for given users
-	qString := ("SELECT password, location FROM " + string(u.userType) +
-		" WHERE name = '" + username + "';")
-	rows, err := db.Query(qString)
+	qString := "SELECT password, location FROM " + string(u.userType) + " WHERE name = ?;"
+	rows, err := db.Query(qString, username)
 	if err != nil {
 		return false, err
 	}
