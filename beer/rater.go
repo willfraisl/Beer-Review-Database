@@ -25,7 +25,7 @@ func rateBeer(db *sql.DB) {
 	desc = strings.TrimSuffix(desc, "\n")
 
 	// update := "INSERT INTO rating (beer,brewery,stars,description, date) VALUES ('" + beerName + "','" + brewery + "'," + stars + ",'" + desc + "',NOW())"
-	_, err := db.Exec("INSERT INTO rating (beer,brewery,stars,description, date) VALUES (?,?,?,?,NOW())",
+	_, err := db.Exec("INSERT INTO rating (beername,brewery,stars,description, date) VALUES (?,?,?,?,NOW())",
 		beerName, brewery, stars, desc)
 	if err != nil {
 		panic(err) //fmt.Println("Cannot add rating. (Maybe the brewery hasn't added the beer?)")
