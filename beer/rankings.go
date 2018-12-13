@@ -28,29 +28,30 @@ func topBeer(db *sql.DB, timeFrame string) {
 	}
 	queryTimeStr := queryTime.Format("2006-02-01")
 
-	request := "SELECT b.name, AVG(r.stars) "
-	request += "FROM beer b JOIN rating r ON (b.name = r.beername) "
+	request := "SELECT b.name, b.brewery, AVG(r.stars) "
+	request += "FROM beer b JOIN rating r ON (b.name = r.beername) AND (b.brewery = r.brewery) "
 	request += "WHERE date >= " + queryTimeStr
-	request += " GROUP BY b.name "
-	request += "HAVING AVG(r.stars) >= ("
+	request += " GROUP BY b.name, b.brewery "
+	request += "HAVING AVG(r.stars) >= ALL ("
 	request += "SELECT AVG(r.stars) "
-	request += "FROM beer b JOIN rating r ON (b.name = r.beername) "
+	request += "FROM beer b JOIN rating r ON (b.name = r.beername) AND (b.brewery = r.brewery) "
 	request += "WHERE date >= " + queryTimeStr
-	request += " GROUP BY b.name)"
+	request += " GROUP BY b.name, b.brewery)"
 	rows, err := db.Query(request)
 	if err != nil {
+		fmt.Println("query err")
 		panic(err.Error())
 	}
 	defer rows.Close()
 
 	var beerName string
-	//var brewery string
+	var brewery string
 	var avgRating float32
 	for rows.Next() {
-		err := rows.Scan(&beerName, &avgRating)
+		err := rows.Scan(&beerName, &brewery, &avgRating)
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Println("Beer:", beerName, "| Average Rating:", avgRating)
+		fmt.Println(brewery, beerName, "| Average Rating:", avgRating)
 	}
 }
