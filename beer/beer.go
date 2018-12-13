@@ -1,8 +1,8 @@
 /* File Name: beer.go
  * Authors: Will Fraisl and Max McKee
  * Description:
- * Usage: go build beer.go
- * 		  ./beer
+ * Usage: Place entire beer folder in $GOPATH/src
+ *		  Build and install to $GOBIN with 'go install beer'
  */
 
 package main
@@ -19,16 +19,23 @@ import (
 )
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
+	// Connect to database
+	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer db.Close()
 
+	console := bufio.NewReader(os.Stdin)
 	fmt.Println("-----------------------------------------------")
 	fmt.Println("Hello and Welcome to the Beer Review Database!!")
 	fmt.Println("-----------------------------------------------")
 
+	// Get user type selection
 	var sel int
 	for true {
 		fmt.Print("Are you a (1)brewer, (2)vendor, or (3)rater: ")
-		userStr, _ := reader.ReadString('\n')
+		userStr, _ := console.ReadString('\n')
 		userStr = strings.TrimSuffix(userStr, "\n")
 		sel, _ = strconv.Atoi(userStr)
 		if sel > 0 && sel < 4 {
@@ -36,15 +43,7 @@ func main() {
 		}
 	}
 
-	// check what type of user
-
-	// connect to database
-	db, err := sql.Open("mysql", "root:password@tcp(127.0.0.1:3306)/beer_database")
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
-
+	// Prompt user to log in for their user type
 	user := User{}
 	var isLoggedIn bool
 	for true {
@@ -60,10 +59,10 @@ func main() {
 
 	fmt.Printf("Welcome, %s!\n", user.name)
 
-	// loop to accept user commands
+	// Loop to accept user commands
 	for true {
 		fmt.Print(">")
-		input, _ := reader.ReadString('\n')
+		input, _ := console.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
 		cmd := strings.SplitN(input, " ", 2)
 
@@ -79,7 +78,6 @@ func main() {
 		case "yearly":
 			topBeer(db, "year")
 		case "find":
-			// TODO: accept with argument
 			findBeer(db, user.location, cmd[1])
 		case "rate":
 			if user.userType == rater {
@@ -113,19 +111,20 @@ func main() {
 			}
 		default:
 			fmt.Println("Not a valid command")
-			// TODO: print a list of commands
 		}
 	}
 }
 
 // Finds all beers that match a name and their brewery, along with vendors that stock it.
 func findBeer(db *sql.DB, location string, beerName string) {
+	// Check for wildcard
 	var request string
 	if beerName == "*" {
 		request = "SELECT * FROM beer ORDER BY brewery;"
 	} else {
 		request = "SELECT * FROM beer WHERE name = '" + beerName + "';"
 	}
+	// Query for all matching beers
 	rows, err := db.Query(request)
 	if err != nil {
 		fmt.Println("Internal error finding beers")
@@ -142,6 +141,7 @@ func findBeer(db *sql.DB, location string, beerName string) {
 	if err != nil {
 		fmt.Println("There was a problem getting inventory information")
 	}
+
 	var name string
 	var brewery string
 	var abv float32
@@ -149,12 +149,14 @@ func findBeer(db *sql.DB, location string, beerName string) {
 	var vendorName string
 	var quantity int
 	for rows.Next() {
+		// Get next beer and print
 		err := rows.Scan(&name, &brewery, &abv, &ibu)
 		if err != nil {
 			continue
 		}
 		fmt.Printf("%s:  %-35s %.1f ABV \t %d IBU\n", brewery, name, abv, ibu)
 
+		// Query for the local stock of this beer
 		localVendors, err := localStock.Query(location, brewery, name)
 		defer localVendors.Close()
 		if err != nil {
@@ -162,6 +164,7 @@ func findBeer(db *sql.DB, location string, beerName string) {
 			continue
 		}
 
+		// Print each vendor and associated stock
 		hasVendor := false
 		for localVendors.Next() {
 			hasVendor = true
