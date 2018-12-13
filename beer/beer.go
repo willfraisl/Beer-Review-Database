@@ -79,7 +79,7 @@ func main() {
 			topBeer(db, "year")
 		case "find":
 			// TODO: accept with argument
-			findBeer(db, cmd[1])
+			findBeer(db, user.location, cmd[1])
 		case "rate":
 			if user.userType == rater {
 				rateBeer(db)
@@ -118,7 +118,7 @@ func main() {
 }
 
 // Finds all beers that match a name and their brewery, along with vendors that stock it.
-func findBeer(db *sql.DB, beerName string) {
+func findBeer(db *sql.DB, location string, beerName string) {
 	var request string
 	if beerName == "*" {
 		request = "SELECT * FROM beer ORDER BY brewery;"
@@ -131,16 +131,46 @@ func findBeer(db *sql.DB, beerName string) {
 	}
 	defer rows.Close()
 
+	// Gets the stock of local vendors for a specific beer
+	localStock, err := db.Prepare("SELECT v.name, i.quantity " +
+		"FROM beer b CROSS JOIN vendor v " +
+		"LEFT JOIN inventory i ON v.vid = i.vid AND b.name = i.beername AND b.brewery = i.brewery " +
+		"WHERE v.location = ? " +
+		"AND b.brewery = ? " +
+		"AND b.name = ?;")
+	if err != nil {
+		panic(err.Error())
+	}
 	var name string
 	var brewery string
 	var abv float32
 	var ibu int
+	var vendorName string
+	var quantity int
 	for rows.Next() {
 		err := rows.Scan(&name, &brewery, &abv, &ibu)
 		if err != nil {
-			panic(err.Error())
+			continue
 		}
 		fmt.Printf("%s:  %-35s %.1f ABV \t %d IBU\n", brewery, name, abv, ibu)
-		// TODO: Left join with inventory table to see who stocks each beer
+
+		localVendors, err := localStock.Query(location, brewery, name)
+		defer localVendors.Close()
+		if err != nil {
+			panic(err.Error())
+		}
+
+		hasVendor := false
+		for localVendors.Next() {
+			hasVendor = true
+			err = localVendors.Scan(&vendorName, &quantity)
+			if err != nil {
+				quantity = 0
+			}
+			fmt.Printf("    %-10s %d in stock\n", vendorName, quantity)
+		}
+		if !hasVendor {
+			fmt.Println("    No vendors found in " + location)
+		}
 	}
 }

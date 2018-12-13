@@ -71,7 +71,7 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error) {
 	h.Write([]byte(password))
 
 	// Run query to fetch password hash from database for given users
-	qString := ("SELECT password FROM " + string(u.userType) +
+	qString := ("SELECT password, location FROM " + string(u.userType) +
 		" WHERE name = '" + username + "';")
 	rows, err := db.Query(qString)
 	if err != nil {
@@ -83,7 +83,7 @@ func (u *User) Login(db *sql.DB, userType int) (bool, error) {
 	if rows.Next() {
 		var pHash string
 		// Fetch data from the first row found
-		if err = rows.Scan(&pHash); err != nil {
+		if err = rows.Scan(&pHash, &u.location); err != nil {
 			return false, err
 		} else if pHash == fmt.Sprintf("%x", h.Sum(nil)) { // Sucessful login
 			u.name = username

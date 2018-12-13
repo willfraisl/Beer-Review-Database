@@ -28,7 +28,7 @@ CREATE TABLE vendor(
 );
 
 CREATE TABLE beer(
-    name        VARCHAR(50),
+    name    VARCHAR(50),
     brewery     VARCHAR(50),
     abv         DECIMAL(2,1),
     ibu         INT,
@@ -38,23 +38,23 @@ CREATE TABLE beer(
 
 CREATE TABLE rating(
     rid         INT AUTO_INCREMENT,
-    beer        VARCHAR(50),
+    beername    VARCHAR(50),
     brewery     VARCHAR(50),
     stars       INT,
     description VARCHAR(120),
     date        DATE,
     PRIMARY KEY (rid),
-    FOREIGN KEY (beer) REFERENCES beer(name) ON DELETE CASCADE,
+    FOREIGN KEY (beername) REFERENCES beer(name) ON DELETE CASCADE,
     FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE
 );
 
 CREATE TABLE inventory(
     vid         INT,
-    beer        VARCHAR(50),
+    beername    VARCHAR(50),
     brewery     VARCHAR(50),
-    qualtity    INT,
-    PRIMARY KEY (vid, beer),
-    FOREIGN KEY (beer) REFERENCES beer(name) ON DELETE CASCADE,
+    quantity    INT,
+    PRIMARY KEY (vid, beername),
+    FOREIGN KEY (beername) REFERENCES beer(name) ON DELETE CASCADE,
     FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE,
     FOREIGN KEY (vid) REFERENCES vendor(vid) ON DELETE CASCADE
 );
