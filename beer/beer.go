@@ -100,13 +100,13 @@ func main() {
 			}
 		case "stock":
 			if user.userType == vendor {
-				stockBeer(db)
+				stockBeer(db, string(user.name))
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}
 		case "unstock":
 			if user.userType == vendor {
-				unstockBeer(db)
+				unstockBeer(db, string(user.name))
 			} else {
 				fmt.Println("Only vendor has access to that command")
 			}

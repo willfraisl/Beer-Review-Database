@@ -52,7 +52,7 @@ CREATE TABLE inventory(
     vid         INT,
     beer        VARCHAR(50),
     brewery     VARCHAR(50),
-    qualtity    INT,
+    quantity    INT,
     PRIMARY KEY (vid, beer),
     FOREIGN KEY (beer) REFERENCES beer(name) ON DELETE CASCADE,
     FOREIGN KEY (brewery) REFERENCES brewery(name) ON DELETE CASCADE,
