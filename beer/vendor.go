@@ -22,6 +22,7 @@ func stockBeer(db *sql.DB) {
 	quantity = strings.TrimSuffix(quantity, "\n")
 
 	// TODO: stock table in db
+	// test push
 }
 
 // Prompts user for beer they want to remove from their stock
